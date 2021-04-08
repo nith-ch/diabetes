@@ -62,7 +62,7 @@ Diabetes.head()
 Diabetes2.info()
 ```
 
-# Check mean of each columns
+## Check mean of each columns
 ```
 Diabetes.describe()
 ```
