@@ -3,7 +3,7 @@ This dataset describes 10 years (1999-2008) of clinical care at 130 US hospitals
 It comes from the UCI machine learning repository ``` https://archive.ics.uci.edu/ml/datasets/diabetes+130-us+hospitals+for+years+1999-2008 ```
 Data were derived from the database for encounters that met the following guidelines.
 
-# Data Set Information
+## Data Set Information
 (1) It is an inpatient encounter (a hospital admission).\
 (2) It is a diabetic encounter, that is, one during which any kind of diabetes was entered to the system as a diagnosis.\
 (3) The length of stay was at least 1 day and at most 14 days.\
@@ -119,7 +119,7 @@ Diabetes2 = Diabetes2[(Diabetes2.diag_2 != "?")]
 Diabetes2 = Diabetes2[(Diabetes2.diag_3 != "?")]
 ```
 
-# Represent values “0” represnts No readmisson or readmission after 30 days whereas 1 represents readmission within 30 days
+# Represent values “0” represents "No readmission or readmission after 30 days whereas 1 represents readmission within 30 days
 The most important column is "readmitted", which tell us if the patient was hospitalized in 30 days, 
 more than 30 days or not readmitted.
 ```
