@@ -4,10 +4,10 @@ It comes from the UCI machine learning repository ``` https://archive.ics.uci.ed
 Data were derived from the database for encounters that met the following guidelines.
 
 # Data Set Information
-(1) It is an inpatient encounter (a hospital admission).
-(2) It is a diabetic encounter, that is, one during which any kind of diabetes was entered to the system as a diagnosis.
-(3) The length of stay was at least 1 day and at most 14 days.
-(4) Laboratory tests were performed during the encounter.
+(1) It is an inpatient encounter (a hospital admission).\
+(2) It is a diabetic encounter, that is, one during which any kind of diabetes was entered to the system as a diagnosis.\
+(3) The length of stay was at least 1 day and at most 14 days.\
+(4) Laboratory tests were performed during the encounter.\
 (5) Medications were administered during the encounter.
 
 # Install
@@ -46,50 +46,58 @@ from xgboost import plot_tree
 from sklearn.svm import SVC
 ```
 
-##Data Exploration
+# Data Exploration
 Loading the dataset
 ```
 Diabetes = pd.read_csv('diabetic_data.csv', index_col=False)
 ```
 
-#Check column names
+# Check column names
 ```
 Diabetes.head()
 ```
 
-#Check data type
+# Check data type
 ```
 Diabetes2.info()
 ```
 
-#Check mean of each columns
+# Check mean of each columns
 ```
 Diabetes.describe()
 ```
 
-#Count readmitted
+# Count readmitted
+```
 Diabetes.readmitted.value_counts().plot(kind='barh', rot=0)
 plt.title("Count Readmitted")
 plt.xlabel("Amount")
 plt.ylabel("Readmitted Day")
-#Count race
+```
+# Count race
+```
 Diabetes.race.value_counts().plot(kind='bar', rot=0, color='green')
 plt.xticks(rotation=45, horizontalalignment="center")
 plt.title("Count Race")
 plt.xlabel("Race")
 plt.ylabel("Amount")
-#Count gender
+```
+# Count gender
+```
 Diabetes.gender.value_counts().plot(kind='bar', rot=0, color='blue')
 plt.title("Count Gender")
 plt.xlabel("Gender")
 plt.ylabel("Amount")
-#Count age
+```
+# Count age
+```
 Diabetes.age.value_counts().plot(kind='barh', rot=0)
 plt.title("Count Age")
 plt.xlabel("Amount")
 plt.ylabel("Age")
+```
 
-#Choose columns and removed examide+citoglipton
+# Choose columns and removed examide+citoglipton
 We will remove examide and citoglipton because these medicines don't have other status types except "No"
 ```
 Diabetes2 = Diabetes[['race','gender','age','weight','admission_type_id','discharge_disposition_id','admission_source_id', 
@@ -102,7 +110,7 @@ Diabetes2 = Diabetes[['race','gender','age','weight','admission_type_id','discha
                       'readmitted']]
 					  ```
 
-#Remove ? in 4 columns
+# Remove ? in 4 columns
 Remove unnecessary question masks from race, diag_1, diag_2 and diag_3
 ```
 Diabetes2 = Diabetes2[(Diabetes2.race != "?")]
@@ -111,7 +119,7 @@ Diabetes2 = Diabetes2[(Diabetes2.diag_2 != "?")]
 Diabetes2 = Diabetes2[(Diabetes2.diag_3 != "?")]
 ```
 
-#Represent values “0” represnts No readmisson or readmission after 30 days whereas 1 represents readmission within 30 days
+# Represent values “0” represnts No readmisson or readmission after 30 days whereas 1 represents readmission within 30 days
 The most important column is "readmitted", which tell us if the patient was hospitalized in 30 days, 
 more than 30 days or not readmitted.
 ```
@@ -120,24 +128,24 @@ Diabetes2.loc[Diabetes2['readmitted'] == ">30", 'readmittedFL'] = '0'
 Diabetes2.loc[Diabetes2['readmitted'] == "NO", 'readmittedFL'] = '0'
 ```
 
-#Copy table
+# Copy table
 ```
 Diabetes3 = Diabetes2.copy()
 ```
 
-#Create column list of num
+# Create column list of num
 Create "Diabetes_num" to analyst in the next process
 ```
 Diabetes_num = ['time_in_hospital','num_lab_procedures','num_procedures','num_medications',
                  'number_outpatient','number_emergency','number_inpatient','number_diagnoses']
 ```
 
-#Convert Diabetes_num to string
+# Convert Diabetes_num to string
 ```
 Diabetes3[Diabetes_num] = Diabetes3[Diabetes_num].astype('str')
 ```
 
-#Create column list of cal
+# Create column list of cal
 Create "Diabetes_cal" to analyst in the next process
 ```
 Diabetes_cal = ['gender','max_glu_serum', 'A1Cresult', 'metformin', 'repaglinide', 'nateglinide', 'chlorpropamide', 'glimepiride', 
@@ -146,18 +154,18 @@ Diabetes_cal = ['gender','max_glu_serum', 'A1Cresult', 'metformin', 'repaglinide
                 'metformin-rosiglitazone', 'metformin-pioglitazone', 'change', 'diabetesMed', 'readmitted', 'readmitted_in']
 ```
 
-#Convert Diabetes_cal to string
+# Convert Diabetes_cal to string
 ```
 Diabetes3[Diabetes_cal] = Diabetes3[Diabetes_cal].astype('str')
 ```
 
-#Replace '?'
+# Replace '?'
 We will replace '?' with 'Unknown' to make it easier to analyze.
 ```
 Diabetes3['medical_specialty'] = Diabetes3['medical_specialty'].replace('?','Unknown')
 ```
 
-#Group medical_specialty column
+# Group medical_specialty column
 We will group data according to the symptoms.
 ```
 pediatrics = ['Pediatrics','Pediatrics-CriticalCare','Pediatrics-EmergencyMedicine','Pediatrics-Endocrinology', \
@@ -203,36 +211,36 @@ for val in Diabetes3['medical_specialty'] :
 Diabetes3['medical_specialty'] = colmed_spec
 ```
 
-#Create new column for medical_specialty to colmed_spec
+# Create new column for medical_specialty to colmed_spec
 ```
 Diabetes3['colmed_spec'] = Diabetes3['medical_specialty'].copy()
 ```
 
-#Convert colmed_spec to string
+# Convert colmed_spec to string
 ```
 Diabetes3[colmed_spec] = Diabetes3['colmed_spec'].astype('str')
 ```
 
-#Mix Diabetes_num+Diabetes_cal+colmed_spec
+# Mix Diabetes_num+Diabetes_cal+colmed_spec
 Now we merge all the categories together.
 ```
 Diabetes_all = pd.get_dummies(Diabetes3[Diabetes_cal + ['colmed_spec']],drop_first = True)
 Diabetes_all.head
 Diabetes3 = pd.concat([Diabetes3,Diabetes_all], axis=1)
 ```
-#Save column names
+# Save column names
 ```
 Diabetes_all_cat = list(Diabetes_all.columns)
 ```
 
-#Check medical_specialty
+# Check medical_specialty
 Check the total value of each group data
 ```
 Diabetes3.medical_specialty.nunique()
 Diabetes3.groupby('medical_specialty').size().sort_values(ascending = False)
 ```
 
-#Create new column for age_group
+# Create new column for age_group
 Group Age to 3 ranges.
 ```
 age_group = {'[0-10)':1,
@@ -250,7 +258,7 @@ Diabetes3['age_mix'] = Diabetes3.age.replace(age_group)
 Diabetes3_extra = ['age_mix']
 ```
 
-#Create new dataframe
+# Create new dataframe
 Now we created 76 features for the machine learning model.
 8 numerical features
 67 categorical features
@@ -260,7 +268,7 @@ Diabetes3_use =  Diabetes_num + Diabetes_all_cat + Diabetes3_extra
 Diabetes3_data = Diabetes3[Diabetes3_use + ['readmitted_in']]
 ```
 
-#Extract 30% of data
+# Extract 30% of data
 Next step we will build Training/Validation/Test of data samples
 ```
 Diabetes3_data = Diabetes3_data.sample(n = len(Diabetes3_data), random_state = 42)
@@ -268,38 +276,38 @@ Diabetes3_data = Diabetes3_data.reset_index(drop = True)
 Diabetes3_valid_test = Diabetes3_data.sample(frac=0.30,random_state=42)
 print('Split size: %.3f'%(len(Diabetes3_valid_test)/len(Diabetes3_data)))
 ```
-#Training Data of 30%
+# Training Data of 30%
 ```
 Diabetes3_train_all = Diabetes3_data.drop(Diabetes3_valid_test.index)
 ```
 
-#Extract 50% of data
+# Extract 50% of data
 ```
 Diabetes3_test = Diabetes3_valid_test.sample(frac=0.50,random_state=42)
 ```
-#Training Data of 50%
+# Training Data of 50%
 ```
 Diabetes3_valid = Diabetes3_valid_test.drop(Diabetes3_test.index)
 ```
 
-#Split the training data into positive and negative
+# Split the training data into positive and negative
 ```
 rows_pos = Diabetes3_train_all.readmitted_in == '1'
 Diabetes3_pos = Diabetes3_train_all.loc[rows_pos]
 Diabetes3_neg = Diabetes3_train_all.loc[~rows_pos]
 ```
 
-#Merge the data
+# Merge the data
 ```
 Diabetes3_train = pd.concat([Diabetes3_pos, Diabetes3_neg.sample(n = len(Diabetes3_pos), random_state = 42)],axis = 0)
 ```
 
-#Shuffle the order of training data
+# Shuffle the order of training data
 ```
 Diabetes3_train = Diabetes3_train.sample(n = len(Diabetes3_train), random_state = 42).reset_index(drop = True)
 ```
 
-#Calculate the prevalence of population that is readmitted with 30 days
+# Calculate the prevalence of population that is readmitted with 30 days
 ```
 def calc_prevalance(y_actual):
     return (sum(y_actual)/len(y_actual))
@@ -312,7 +320,7 @@ Diabetes3_train['readmitted_in'] = Diabetes3_train['readmitted_in'].astype('int'
 print('Train balanced prevalence(n= %d):%.3f'%(len(Diabetes3_train), calc_prevalance(Diabetes3_train.readmitted_in.values)))
 ```
 
-#Create matrix X and vector y
+# Create matrix X and vector y
 ```
 X_train = Diabetes3_train[Diabetes3_use].values
 X_train_all = Diabetes3_train_all[Diabetes3_use].values
@@ -326,14 +334,14 @@ print('Training Shape:',X_train.shape,y_train.shape)
 print('Validation Shape:',X_valid.shape,y_valid.shape)
 ```
 
-#Fit X_train_all
+# Fit X_train_all
 This step will scale dataset which removes the mean and scales to unit variance.
 ```
 scaler = StandardScaler()
 scaler.fit(X_train_all)
 ```
 
-#Save for the test data
+# Save for the test data
 We will scale the test data, so using a package 'pickle'
 ```
 scalerfile = 'scaler.sav'
@@ -341,13 +349,13 @@ pickle.dump(scaler,open(scalerfile, 'wb'))
 scaler = pickle.load(open(scalerfile, 'rb'))
 ```
 
-#Transform datasets
+# Transform datasets
 ```
 X_train_t = scaler.transform(X_train)
 X_valid_t = scaler.transform(X_valid)
 ```
 
-#Gradient boosting classifier
+# Gradient boosting classifier
 ```
 GBC = GradientBoostingClassifier(n_estimators=100, learning_rate=1.0,max_depth=3, random_state=42)
 GBC = XGBClassifier()
@@ -355,11 +363,11 @@ GBC.fit(X_train_t, y_train)
 y_valid = y_valid.astype('int')
 ```
 
-#Plot Gradient boosting classifier graph
+# Plot Gradient boosting classifier graph
 plot_tree(GBC)
 plt.show()
 
-#Check the validation score
+# Check the validation score
 score = GBC.score(X_valid, y_valid)
 print(score)
 
