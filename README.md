@@ -108,7 +108,7 @@ Diabetes2 = Diabetes[['race','gender','age','weight','admission_type_id','discha
                       'miglitol', 'troglitazone', 'tolazamide', 'insulin', 'glyburide-metformin', 'glipizide-metformin',
                       'glimepiride-pioglitazone', 'metformin-rosiglitazone', 'metformin-pioglitazone', 'change', 'diabetesMed',
                       'readmitted']]
-					  ```
+```
 
 # Remove ? in 4 columns
 Remove unnecessary question masks from race, diag_1, diag_2 and diag_3
