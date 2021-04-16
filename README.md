@@ -59,18 +59,22 @@ We can see there are some numerical, categorical and unknown information in this
 ```
 Diabetes.head()
 ```
+<img src="https://raw.githubusercontent.com/nith-ch/diabetes/master/pic/head.PNG" height="130" width="585">
 
 ## Check data type
 Overview of data columns, types and values
 ```
 Diabetes.info()
 ```
+<img src="https://raw.githubusercontent.com/nith-ch/diabetes/master/pic/info.PNG" height="560" width="300">
+
 
 ## Check mean of each columns
 We check mean, standard deviation and other of each columns
 ```
 Diabetes.describe()
 ```
+<img src="https://raw.githubusercontent.com/nith-ch/diabetes/master/pic/describe.PNG" height="175" width="540">
 
 ## Count readmitted
 From the bar chart, we can see that the patient who readmitted within 30 days are the lowest, while "no" readmitted is the highest
@@ -91,6 +95,7 @@ plt.title("Count Race")
 plt.xlabel("Race")
 plt.ylabel("Amount")
 ```
+<img src="https://raw.githubusercontent.com/nith-ch/diabetes/master/pic/count_race.PNG" height="560" width="300">
 ## Count gender
 From the patient data on this graph, it can be seen that women are more than men, and some of the data does not indicate which gender it is.
 ```
@@ -99,6 +104,7 @@ plt.title("Count Gender")
 plt.xlabel("Gender")
 plt.ylabel("Amount")
 ```
+<img src="https://raw.githubusercontent.com/nith-ch/diabetes/master/pic/count_gender.PNG" height="260" width="385">
 ## Count age
 This bar graph shows 10 age groups, each divided into 10 years.
 ```
@@ -107,6 +113,8 @@ plt.title("Count Age")
 plt.xlabel("Amount")
 plt.ylabel("Age")
 ```
+<img src="https://raw.githubusercontent.com/nith-ch/diabetes/master/pic/count_age.PNG" height="260" width="395">
+
 
 ## Choose columns and removed examide+citoglipton
 We will remove examide and citoglipton because these medicines don't have other status types except "No"
