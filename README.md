@@ -80,7 +80,7 @@ plt.title("Count Readmitted")
 plt.xlabel("Amount")
 plt.ylabel("Readmitted Day")
 ```
-<img src="https://raw.githubusercontent.com/nith-ch/diabetes/master/pic/count_readmitted.PNG" height="388" width="276">
+<img src="https://raw.githubusercontent.com/nith-ch/diabetes/master/pic/count_readmitted.PNG" height="276" width="388">
 
 ## Count race
 This graph shows the patient race, with Asians having the least, but Caucasians the most.
