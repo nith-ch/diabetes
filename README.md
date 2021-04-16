@@ -9,6 +9,8 @@ Data were derived from the database for encounters that met the following guidel
 (3) The length of stay was at least 1 day and at most 14 days.\
 (4) Laboratory tests were performed during the encounter.\
 (5) Medications were administered during the encounter.
+I will demonstrate how to design models that can predict whether the patient will readmit or not 
+within 30 days using 130 US hospitals' diabetes dataset.
 
 ## Install
 ```
@@ -77,6 +79,7 @@ Diabetes.readmitted.value_counts().plot(kind='barh', rot=0)
 plt.title("Count Readmitted")
 plt.xlabel("Amount")
 plt.ylabel("Readmitted Day")
+<img src="https://github.com/nith-ch/diabetes/blob/master/pic/count_readmitted.PNG" height="75" width="100" />
 ```
 ## Count race
 This graph shows the patient race, with Asians having the least, but Caucasians the most.
