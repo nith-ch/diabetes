@@ -79,7 +79,7 @@ Diabetes.readmitted.value_counts().plot(kind='barh', rot=0)
 plt.title("Count Readmitted")
 plt.xlabel("Amount")
 plt.ylabel("Readmitted Day")
-![Optional Text](../master/pic/count_readmitted.PNG)
+![alt tag](https://github.com/nith-ch/diabetes/blob/master/pic/count_readmitted.PNG)
 ```
 ## Count race
 This graph shows the patient race, with Asians having the least, but Caucasians the most.
