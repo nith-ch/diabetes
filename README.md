@@ -96,6 +96,7 @@ plt.xlabel("Race")
 plt.ylabel("Amount")
 ```
 <img src="https://raw.githubusercontent.com/nith-ch/diabetes/master/pic/count_race.PNG" height="315" width="495">
+
 ## Count gender
 From the patient data on this graph, it can be seen that women are more than men, and some of the data does not indicate which gender it is.
 ```
@@ -105,6 +106,7 @@ plt.xlabel("Gender")
 plt.ylabel("Amount")
 ```
 <img src="https://raw.githubusercontent.com/nith-ch/diabetes/master/pic/count_gender.PNG" height="260" width="385">
+
 ## Count age
 This bar graph shows 10 age groups, each divided into 10 years.
 ```
