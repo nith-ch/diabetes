@@ -95,7 +95,7 @@ plt.title("Count Race")
 plt.xlabel("Race")
 plt.ylabel("Amount")
 ```
-<img src="https://raw.githubusercontent.com/nith-ch/diabetes/master/pic/count_race.PNG" height="560" width="300">
+<img src="https://raw.githubusercontent.com/nith-ch/diabetes/master/pic/count_race.PNG" height="315" width="495">
 ## Count gender
 From the patient data on this graph, it can be seen that women are more than men, and some of the data does not indicate which gender it is.
 ```
