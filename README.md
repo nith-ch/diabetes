@@ -80,6 +80,7 @@ plt.title("Count Readmitted")
 plt.xlabel("Amount")
 plt.ylabel("Readmitted Day")
 ```
+<img src="/pic/count_readmitted.PNG" alt="My cool logo"/>
 ![](https://github.com/nith-ch/diabetes/blob/master/pic/count_readmitted.PNG)
 
 ## Count race
