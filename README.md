@@ -53,21 +53,25 @@ Diabetes = pd.read_csv('diabetic_data.csv', index_col=False)
 ```
 
 ## Check column names
+We can see there are some numerical, categorical and unknown information in this dataset as below:
 ```
 Diabetes.head()
 ```
 
 ## Check data type
+Overview of data columns, types and values
 ```
-Diabetes2.info()
+Diabetes.info()
 ```
 
 ## Check mean of each columns
+We check mean, standard deviation and other of each columns
 ```
 Diabetes.describe()
 ```
 
 ## Count readmitted
+From the bar chart, we can see that the patient who readmitted within 30 days are the lowest, while "no" readmitted is the highest
 ```
 Diabetes.readmitted.value_counts().plot(kind='barh', rot=0)
 plt.title("Count Readmitted")
@@ -75,14 +79,16 @@ plt.xlabel("Amount")
 plt.ylabel("Readmitted Day")
 ```
 ## Count race
+This graph shows the patient race, with Asians having the least, but Caucasians the most.
 ```
-Diabetes.race.value_counts().plot(kind='bar', rot=0, color='green')
+Diabetes.race.value_counts().plot(kind='bar', rot=0, color='green', figsize=(8,5), title="Count Race")
 plt.xticks(rotation=45, horizontalalignment="center")
 plt.title("Count Race")
 plt.xlabel("Race")
 plt.ylabel("Amount")
 ```
 ## Count gender
+From the patient data on this graph, it can be seen that women are more than men, and some of the data does not indicate which gender it is.
 ```
 Diabetes.gender.value_counts().plot(kind='bar', rot=0, color='blue')
 plt.title("Count Gender")
@@ -90,6 +96,7 @@ plt.xlabel("Gender")
 plt.ylabel("Amount")
 ```
 ## Count age
+This bar graph shows 10 age groups, each divided into 10 years.
 ```
 Diabetes.age.value_counts().plot(kind='barh', rot=0)
 plt.title("Count Age")
@@ -129,6 +136,7 @@ Diabetes2.loc[Diabetes2['readmitted'] == "NO", 'readmittedFL'] = '0'
 ```
 
 ## Copy table
+This step will backup data for another analysis
 ```
 Diabetes3 = Diabetes2.copy()
 ```
@@ -327,7 +335,7 @@ X_train_all = Diabetes3_train_all[Diabetes3_use].values
 X_valid = Diabetes3_valid[Diabetes3_use].values
 ## Vector y
 y_train = Diabetes3_train['readmitted_in'].values
-y_valid = Diabetes3_valid['readmitted_in'].values
+y_valid = Diabetes3_valid['readmitted_in'].values.astype(int)
 
 print('Training All Shape:',X_train_all.shape)
 print('Training Shape:',X_train.shape,y_train.shape)
@@ -353,6 +361,66 @@ scaler = pickle.load(open(scalerfile, 'rb'))
 ```
 X_train_t = scaler.transform(X_train)
 X_valid_t = scaler.transform(X_valid)
+```
+
+# Evaluate the performance of the model
+```
+def calc_specificity(y_actual, y_pred, thresh):
+	return sum((y_pred < thresh) & (y_actual  ==  0))/sum(y_actual == 0)
+	
+def print_report(y_actual, y_pred, thresh):
+	auc = roc_auc_score(y_actual, y_pred)
+	accuracy = accuracy_score(y_actual, (y_pred > thresh))
+	recall = recall_score(y_actual, (y_pred > thresh))
+	precision = precision_score((y_actual, (y_pred > thresh))
+	specificity = calc_specificity(y_actual, y_pred, thresh)
+	print('AUC:%.3f'%auc)
+	print('accuracy:%.3f'%accuracy)
+	print('recall:%.3f'%recall)
+	print('precision:%.3f'%precision)
+	print('specificity:%.3f'%specificity)
+	print('prevalence:%.3f'%calc_prevalance(y_actual))
+	print(' ')
+	return auc, accuracy, recall, precision, specificity
+```
+
+We set threshold at 0.5 to label a predicted sample as positive
+```
+thresh = 0.5
+```
+
+## KNN
+```
+knn = KNeighborsClassifier(n_neighbors = 100)
+knn.fit(X_train_t, y_train)
+
+y_train_preds = knn.predict_proba(X_train_t)[:,1]
+y_valid_preds = knn.predict_proba(X_valid_t)[:,1]
+
+print('KNN')
+print('Training:')
+knn_train_auc, knn_train_accuracy, knn_train_recall, \
+    knn_train_precision, knn_train_specificity = print_report(y_train,y_train_preds, thresh)
+print('Validation:')
+knn_valid_auc, knn_valid_accuracy, knn_valid_recall, \
+    knn_valid_precision, knn_valid_specificity = print_report(y_valid,y_valid_preds, thresh)
+```
+
+## LogisticRegression
+```
+lr=LogisticRegression(random_state=42)
+lr.fit(X_train_t,y_train)
+
+y_train_preds = lr.predict_proba(X_train_tf)[:,1]
+y_valid_preds = lr.predict_proba(X_valid_tf)[:,1]
+
+print('Logistic Regression')
+print('Training:')
+lr_train_auc, lr_train_accuracy, lr_train_recall, \
+    lr_train_precision, lr_train_specificity = print_report(y_train,y_train_preds, thresh)
+print('Validation:')
+lr_valid_auc, lr_valid_accuracy, lr_valid_recall, \
+    lr_valid_precision, lr_valid_specificity = print_report(y_valid,y_valid_preds, thresh)
 ```
 
 ## Gradient boosting classifier
