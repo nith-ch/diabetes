@@ -128,7 +128,12 @@ Diabetes2 = Diabetes[['race','gender','age','weight','admission_type_id','discha
                       'acetohexamide', 'glipizide', 'glyburide', 'tolbutamide', 'pioglitazone', 'rosiglitazone', 'acarbose',
                       'miglitol', 'troglitazone', 'tolazamide', 'insulin', 'glyburide-metformin', 'glipizide-metformin',
                       'glimepiride-pioglitazone', 'metformin-rosiglitazone', 'metformin-pioglitazone', 'change', 'diabetesMed',
-                      'readmitted']]
+                      'readmitted', 'readmitted_in', 'payer_code']]
+```
+
+## Remove ID 11,13,14,19,20,21 because it's related to death or hospice
+```
+Diabetes2 = Diabetes2.loc[~Diabetes2.discharge_disposition_id.isin([11,13,14,19,20,21])]
 ```
 
 ## Remove ? in 4 columns
@@ -138,6 +143,13 @@ Diabetes2 = Diabetes2[(Diabetes2.race != "?")]
 Diabetes2 = Diabetes2[(Diabetes2.diag_1 != "?")]
 Diabetes2 = Diabetes2[(Diabetes2.diag_2 != "?")]
 Diabetes2 = Diabetes2[(Diabetes2.diag_3 != "?")]
+```
+
+## Calculate the prevalence of population that is readmitted with 30 days
+```
+def calc_prevalence(y_actual):
+    return (sum(y_actual)/len(y_actual))
+print('Prevalance:%.3f'%calc_prevalence(Diabetes2['readmitted_in'].values)) #Three decimal places
 ```
 
 ## Represent values “0” represents "No readmission or readmission after 30 days whereas 1 represents readmission within 30 days
@@ -170,10 +182,10 @@ Diabetes3[Diabetes_num] = Diabetes3[Diabetes_num].astype('str')
 ## Create column list of cal
 Create "Diabetes_cal" to analyst in the next process
 ```
-Diabetes_cal = ['gender','max_glu_serum', 'A1Cresult', 'metformin', 'repaglinide', 'nateglinide', 'chlorpropamide', 'glimepiride', 
+Diabetes_cal = ['race', 'gender', 'max_glu_serum', 'A1Cresult', 'metformin', 'repaglinide', 'nateglinide', 'chlorpropamide', 'glimepiride', 
                 'acetohexamide', 'glipizide', 'glyburide', 'tolbutamide', 'pioglitazone', 'rosiglitazone', 'acarbose', 'miglitol', 
                 'troglitazone', 'tolazamide', 'insulin', 'glyburide-metformin', 'glipizide-metformin', 'glimepiride-pioglitazone', 
-                'metformin-rosiglitazone', 'metformin-pioglitazone', 'change', 'diabetesMed', 'readmitted', 'readmitted_in']
+                'metformin-rosiglitazone', 'metformin-pioglitazone', 'change', 'diabetesMed', 'payer_code', 'readmitted_in']
 ```
 
 ## Convert Diabetes_cal to string
@@ -185,6 +197,7 @@ Diabetes3[Diabetes_cal] = Diabetes3[Diabetes_cal].astype('str')
 We will replace '?' with 'Unknown' to make it easier to analyze.
 ```
 Diabetes3['medical_specialty'] = Diabetes3['medical_specialty'].replace('?','Unknown')
+Diabetes3['payer_code'] = Diabetes3['payer_code'].fillna('Unknown')
 ```
 
 ## Group medical_specialty column
@@ -243,10 +256,16 @@ Diabetes3['colmed_spec'] = Diabetes3['medical_specialty'].copy()
 Diabetes3[colmed_spec] = Diabetes3['colmed_spec'].astype('str')
 ```
 
+## Convert numerical to string data
+```
+Diabetes_cat_num = ['admission_type_id', 'discharge_disposition_id', 'admission_source_id']
+Diabetes3[Diabetes_cat_num] = Diabetes3[Diabetes_cat_num].astype('str')
+```
+
 ## Mix Diabetes_num+Diabetes_cal+colmed_spec
 Now we merge all the categories together.
 ```
-Diabetes_all = pd.get_dummies(Diabetes3[Diabetes_cal + ['colmed_spec']],drop_first = True)
+Diabetes_all = pd.get_dummies(Diabetes3[Diabetes_cal + Diabetes_cat_num + ['colmed_spec']],drop_first = True)
 Diabetes_all.head
 Diabetes3 = pd.concat([Diabetes3,Diabetes_all], axis=1)
 ```
@@ -276,8 +295,15 @@ age_group = {'[0-10)':1,
              '[80-90)':3,
              '[90-100)':3}
 Diabetes3['age_mix'] = Diabetes3.age.replace(age_group)
+
+## Keep track for weight
+```
+Diabetes3['weight'] = Diabetes3.weight.notnull().astype('int')
+```
+
 ## Keep track age_mix
-Diabetes3_extra = ['age_mix']
+```
+Diabetes3_extra = ['age_mix','weight']
 ```
 
 ## Create new dataframe
@@ -310,9 +336,16 @@ Diabetes3_test = Diabetes3_valid_test.sample(frac=0.50,random_state=42)
 ## Training Data of 50%
 ```
 Diabetes3_valid = Diabetes3_valid_test.drop(Diabetes3_test.index)
+Diabetes3_train_all=Diabetes3_data.drop(Diabetes3_valid_test.index)
+```
+
+## Let's verify that we used all the data.
+```
+print('all samples (n = %d)'%len(Diabetes3_data))
 ```
 
 ## Split the training data into positive and negative
+We will create a balanced dataset for training and testing that has 50% each rows
 ```
 rows_pos = Diabetes3_train_all.readmitted_in == '1'
 Diabetes3_pos = Diabetes3_train_all.loc[rows_pos]
@@ -327,13 +360,6 @@ Diabetes3_train = pd.concat([Diabetes3_pos, Diabetes3_neg.sample(n = len(Diabete
 ## Shuffle the order of training data
 ```
 Diabetes3_train = Diabetes3_train.sample(n = len(Diabetes3_train), random_state = 42).reset_index(drop = True)
-```
-
-## Calculate the prevalence of population that is readmitted with 30 days
-```
-def calc_prevalance(y_actual):
-    return (sum(y_actual)/len(y_actual))
-print('Prevalance:%.3f'%calc_prevalance(Diabetes2['readmitted_in'].values)) #Three decimal places
 ```
 
 ## Check balanced prevalence
@@ -472,227 +498,3 @@ plt.legend(['Not Admitted', 'Admitted'], title='Readmitted', loc='upper right')
 
 
 ###############################################
-#Prepare data for SVM
-Diabetes_drug = Diabetes2[['metformin', 'repaglinide', 'nateglinide', 'chlorpropamide', 'glimepiride',
-                      'acetohexamide', 'glipizide', 'glyburide', 'tolbutamide', 'pioglitazone', 'rosiglitazone', 'acarbose',
-                      'miglitol', 'troglitazone', 'tolazamide', 'insulin', 'glyburide-metformin', 'glipizide-metformin',
-                      'glimepiride-pioglitazone', 'metformin-rosiglitazone', 'metformin-pioglitazone', 'diabetesMed']]
-
-
-#Create dummy variables
-nominal = ['metformin','repaglinide','nateglinide','chlorpropamide','glimepiride','acetohexamide', 'glipizide', 'glyburide', 
-           'tolbutamide', 'pioglitazone', 'rosiglitazone', 'acarbose', 'miglitol', 'troglitazone', 'tolazamide', 'insulin', 
-           'glyburide-metformin', 'glipizide-metformin', 'glimepiride-pioglitazone', 'metformin-rosiglitazone', 
-           'metformin-pioglitazone']
-Diabetes_drug = pd.get_dummies(Diabetes_drug,columns=nominal)
-
-
-#Map data for SVM
-Diabetes_drug['diabetesMed']=Diabetes_drug['diabetesMed'].map({'Yes': 0,'No': 1})
-Diabetes_drug.head()
-
-#Defining features and target variable for SVM
-X_DR = Diabetes_drug.drop('diabetesMed', axis=1).values
-y_DR = Diabetes_drug['diabetesMed'].values
-
-#Split dataset into training set and test set for SVM
-X_train, X_test, y_train, y_test = train_test_split(X_DR, y_DR, test_size=0.30, random_state=42)
-
-print('X train size: ', X_train.shape)
-print('y train size: ', y_train.shape)
-print('X test size: ', X_test.shape)
-print('y test size: ', y_test.shape)
-
-#Standardize numeric variables
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
-
-tuned_parameters = [{'kernel': ['rbf'], 'gamma': [0.1],
-                     'C': [1]},
-                    {'kernel': ['linear'], 'C': [1]}]
-
-clf = GridSearchCV(SVC(), tuned_parameters, cv=5, scoring='f1_micro')
-clf.fit(X_train, y_train)
-
-##
-y_true, y_pred = y_test, clf.predict(X_test)
-print('precision on the evaluation set: ', precision_score(y_true, y_pred))
-print('accuracy on the evaluation set: ', accuracy_score(y_true, y_pred))
-
-
-#Fit SVC Class
-svclassifier = SVC(kernel='linear')
-svclassifier.fit(X_train, y_train)
-
-#Making Predictions
-y_pred = svclassifier.predict(X_test)
-print(confusion_matrix(y_test,y_pred))
-print(classification_report(y_test,y_pred))
-
-
-#Count Group ReadmittedFL
-colors = ['green','blue']
-Not_Admitted = mpatches.Patch(color='green', label='Not_Admitted')
-Admitted = mpatches.Patch(color='blue', label='Admitted')
-ax = Diabetes2.readmittedFL.value_counts().plot(kind='bar', alpha=0.75, legend=False,
-                                                rot=0, figsize=(8,5),color=colors)
-patches, labels = ax.get_legend_handles_labels()
-ax.set_title("Count of Patients who Readmitted", fontsize=12)
-ax.set_ylabel("Number of Patients", fontsize=10)
-ax.set_xlabel("Readmitted", fontsize=10)
-# set individual bar lables using above list
-for i in ax.patches:
-    # get_x pulls left or right; get_height pushes up or down
-    ax.text(i.get_x()+.16, i.get_height()+550, \
-            str(round((i.get_height()), 2)), fontsize=12, color='black')
-ax.legend(handles=[Not_Admitted, Admitted])
- 
-        
-#Count Readmission Days
-ax_re = Diabetes2.readmitted.value_counts().plot(kind='bar', alpha=0.75, 
-                                                rot=0, figsize=(8,5),)
-ax_re.set_title("Count of Patients who Readmitted", fontsize=12)
-ax_re.set_ylabel("Number of Patients", fontsize=10)
-ax_re.set_xlabel("Readmitted", fontsize=10);
-# set individual bar lables using above list
-for i in ax_re.patches:
-    # get_x pulls left or right; get_height pushes up or down
-    ax_re.text(i.get_x()+.12, i.get_height()+520, \
-            str(round((i.get_height()), 2)), fontsize=12, color='black')
-
-#Cound readmitted
-Diabetes2.readmittedFL.value_counts().plot(kind='bar',rot=0)
-Diabetes2.readmitted.value_counts().plot(kind='bar',rot=0)
-Diabetes2.race.value_counts()
-
-#Cound readmitted groupby race
-Diabetes2.groupby(['readmittedFL']).race.value_counts()
-
-#Cound readmitted groupby gender
-Diabetes2.groupby(['readmittedFL']).gender.value_counts()
-
-#Cound readmitted groupby age
-Diabetes2.groupby(['readmittedFL']).age.value_counts()
-
-#Split into input and output features
-y = Diabetes2["readmittedFL"]
-X = Diabetes2[["time_in_hospital","num_lab_procedures","num_procedures","num_medications",
-               "number_outpatient","number_emergency","number_inpatient","number_diagnoses"]]
-X.head()
-y.head()
-
-#Normalize the data attributes
-x_normal = preprocessing.normalize(X)
-pd.DataFrame(x_normal)
-X_imputed= pd.DataFrame(x_normal, columns = X.columns)
-
-#Univariate Histograms
-data = pd.DataFrame(X_imputed)
-fig = plt.figure(figsize = (10,7))
-ax = fig.gca()
-data.hist(ax = ax, bins='auto', color='#0504aa', alpha=0.7, rwidth=1)
-plt.show()
-
-#Pearson Corellation
-X_corr = X_imputed.corr(method='pearson')
-
-#Set label names
-names = ['time_in_hospital', 'num_lab_procedures', 'num_procedures', 'num_medications', 
-         'number_outpatient', 'number_emergency', 'number_inpatient', 'number_diagnoses']
-#Plot correlation matrix
-fig = plt.figure(figsize=(8, 5))
-ax = fig.add_subplot(111)
-cax = ax.matshow(X_corr, vmin=-1, vmax=1)
-fig.colorbar(cax)
-ticks = np.arange(0,8,1)
-ax.tick_params(labelsize=10)
-plt.xticks(rotation=90)
-ax.set_xticks(ticks)
-ax.set_yticks(ticks)
-ax.set_xticklabels(names)
-ax.set_yticklabels(names)
-plt.title('Correlation Matrix', fontsize=18)
-plt.show()
-
-#Check number of K
-SSE = []
-for cluster in range(1,15):
-    kmeans = KMeans(n_jobs = -1, n_clusters = cluster, init='k-means++')
-    kmeans.fit(X_imputed)
-    SSE.append(kmeans.inertia_)
-#Converting the results into a dataframe and plotting them
-frame = pd.DataFrame({'Cluster':range(1,15), 'SSE':SSE})
-plt.figure(figsize=(10,5))
-plt.plot(frame['Cluster'], frame['SSE'], marker='o')
-plt.xlabel('Number of clusters')
-plt.ylabel('Inertia')
-
-#K-Means
-X_array = X_imputed.to_numpy()
-y_kmeans = KMeans(n_clusters=5).fit_predict(X_imputed)
-plt.scatter(X_array[:, 0], X_array[:, 1], c=y_kmeans, s=50, cmap='viridis')
-plt.title('Clusters of Diabetes')
-#plt.xlabel('Annual Income(k$)')
-#plt.ylabel('Spending Score(1-100')
-plt.show()
-
-#Split dataset into training set and test set
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=111) # 70% training and 30% test
-
-
-#Create Decision Tree classifer object
-clf = DecisionTreeClassifier(criterion="entropy", max_depth=None)
-
-#Train Decision Tree Classifer
-clf = clf.fit(X_train,y_train)
-
-#Predict the response for test dataset
-y_pred = clf.predict(X_test)
-y_score = clf.score(X,y)
-
-#Model performance
-print(classification_report(y_test,y_pred))
-
-Diabetes2.groupby('age').size()
-
-#Consolidated from a 10-level factor to 3 and numeric
-replaceDict = {'[0-10)' : 1,
-'[10-20)' : 1,
-'[20-30)' : 1,
-'[30-40)' : 1, 
-'[40-50)' : 1, 
-'[50-60)' : 1,
-'[60-70)' : 2, 
-'[70-80)' : 2,
-'[80-90)' : 3,
-'[90-100)' : 3}
-
-Diabetes2['age_adju'] = Diabetes2['age'].apply(lambda x : replaceDict[x])
-print(Diabetes2['age_adju'].head())
-
-#Encode field race
-le = preprocessing.LabelEncoder()
-for cat_var in ['race']:
-    X[cat_var] = le.fit_transform(X[cat_var])
-#Encode field age
-for cat_var1 in ['age']:
-    X[cat_var1] = le.fit_transform(X[cat_var1])
-#Encode field max_glu_serum
-for cat_var2 in ['max_glu_serum']:
-    X[cat_var2] = le.fit_transform(X[cat_var2])
-#Encode field A1Cresult
-for cat_var3 in ['A1Cresult']:
-    X[cat_var3] = le.fit_transform(X[cat_var3])
-#Encode field A1Cresult
-for cat_var4 in ['metformin']:
-    X[cat_var4] = le.fit_transform(X[cat_var4])
-#Encode field A1Cresult
-for cat_var5 in ['insulin']:
-    X[cat_var5] = le.fit_transform(X[cat_var5])
-
-
-#Inverse field race
-X_train.race = le.inverse_transform(X_train[cat_var])
-#Inverse field age
-X_train.age = le.inverse_transform(X_train[cat_var1]) 
