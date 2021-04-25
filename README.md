@@ -295,6 +295,7 @@ age_group = {'[0-10)':1,
              '[80-90)':3,
              '[90-100)':3}
 Diabetes3['age_mix'] = Diabetes3.age.replace(age_group)
+```
 
 ## Keep track for weight
 ```
